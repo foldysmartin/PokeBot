@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+stable-baselines3 = {extras = ["extra"], version = "*"}
+gymnasium = "*"
+pyboy = "*"
+tensorflow = "*"
+sb3-contrib = "*"
+keras = "*"
+imitation = "*"
+
+[dev-packages]
+torch-tb-profiler = "*"
+black = "*"
+
+[requires]
+python_version = "3.10"

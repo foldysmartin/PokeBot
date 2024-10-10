@@ -1,0 +1,9 @@
+Tensorboard/*
+Sessions/*
+
+__pycache__
+
+*.gb*
+data.json
+output.png
+results.txt
