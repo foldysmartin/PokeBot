@@ -11,6 +11,7 @@ tensorflow = "*"
 sb3-contrib = "*"
 keras = "*"
 imitation = "*"
+p2j = "*"
 
 [dev-packages]
 torch-tb-profiler = "*"

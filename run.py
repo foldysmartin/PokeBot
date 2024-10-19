@@ -1,85 +1,64 @@
+import sys
+from time import sleep
+from poke_bot import PokemonRedEnv
 from sb3_contrib import RecurrentPPO
-from stable_baselines3 import PPO
-from poke_bot_encoded import MapMilestone, Maps, PokemonRedEnv
 
-from stable_baselines3.common.monitor import Monitor
-
-from stable_baselines3.common.evaluation import evaluate_policy
 import keyboard
-from pyboy.api.memory_scanner import DynamicComparisonType
+
+keep_running = True
+manual_control = True
+
+
+def manual_input():
+    while True:
+        event = keyboard.read_event()
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "a":
+            return 0
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "b":
+            return 1
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "left":
+            return 2
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "right":
+            return 3
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "up":
+            return 4
+
+        if event.event_type == keyboard.KEY_DOWN and event.name == "down":
+            return 5
 
 
 def run():
-
-    # downstair = MapMilestone("downsairs", Maps.PlayerLower)
-    env = PokemonRedEnv(debug=True)
-    model = PPO.load("model/v6")
-    # mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=10, deterministic=False, return_episode_rewards=True)
-    # print(mean_reward)
+    env = PokemonRedEnv(debug=True, step_limit=200000)
     obs, info = env.reset()
     terminated = False
+    total_reward = 0
+    lstm_states = None
 
-    memory = True
-    while not terminated:
-        action, _ = model.predict(obs, deterministic=False)
-        (
-            obs,
-            rewards,
-            terminated,
-            done,
-            info,
-        ) = env.step(action)
+    steps = 0
+    # model = RecurrentPPO.load("model/v3")
+    while not terminated or keep_running:
+        if manual_control:
+            action = manual_input()
 
-        if keyboard.is_pressed("1"):
-            print("Refresh")
-            memory = env.pyboy.memory_scanner.scan_memory()
-            print(len(memory))
+        # action, lstm_states = model.predict(obs, state=lstm_states, deterministic=False)
+        (obs, reward, terminated, done, info) = env.step(action, deterministic=True)
+        total_reward += reward
+        steps += 1
 
-        if keyboard.is_pressed("2"):
-            print("Unchanged")
-            memory = env.pyboy.memory_scanner.rescan_memory(
-                dynamic_comparison_type=DynamicComparisonType.UNCHANGED
-            )
-            print(len(memory))
+        if reward:
+            print(f"{total_reward} in {steps}")
+            steps = 0
 
-        if keyboard.is_pressed("3"):
-            print("Changed")
-            memory = env.pyboy.memory_scanner.rescan_memory(
-                dynamic_comparison_type=DynamicComparisonType.CHANGED
-            )
-            print(len(memory))
+        if keyboard.is_pressed("p"):
+            print(env.pokemon_red.current_position())
 
-        if keyboard.is_pressed("4"):
-            a = [
-                50406,
-                50407,
-                50408,
-                50409,
-                52308,
-                53010,
-                58598,
-                58599,
-                58600,
-                58601,
-                60500,
-                61202,
-                65493,
-            ]
-            print(list(map(lambda mem: env.pyboy.memory[mem], a)))
-
-        if keyboard.is_pressed("5"):
-            # print(f"X position {env.pyboy.memory[0xCC24]}")
-            # print(f"Y position {env.pyboy.memory[0xCC25]}")
-            # print(f"current position {env.pyboy.memory[0xCC26]}")
-            # print(f"party position {env.pyboy.memory[0xCC2B]}")
-            # print(f"iten position {env.pyboy.memory[0xCC2C]}")
-            # print(f"start position {env.pyboy.memory[0xCC2D]}")
-
-            print("Pokemon 1 ")
-
-        if keyboard.is_pressed("m"):
+        if keyboard.is_pressed("9"):
             break
 
 
-if __name__ == "__main__":
-    run()
+run()
